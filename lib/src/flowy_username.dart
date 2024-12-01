@@ -1,7 +1,40 @@
 import 'package:flutter/material.dart';
 
 class FlowyUsernamePage extends StatefulWidget {
-  const FlowyUsernamePage({super.key});
+  const FlowyUsernamePage({
+    super.key,
+    this.title = "What's your name?",
+    this.subtitle = "Enter your first name to get started",
+    this.fieldLabel = "First Name",
+    this.prefixIcon = const Icon(Icons.person_outline),
+    this.suffixIcon,
+    this.backIcon = const Icon(Icons.arrow_back),
+    this.maxLength = 20,
+    this.validationRegex = r'^[a-zA-Z]+$',
+    this.regexErrorMessage = 'First name can only contain letters',
+    this.lengthErrorMessage = 'First name must be 20 characters or less',
+    this.continueButtonText = 'Continue',
+    this.onContinue,
+    this.buttonColor = Colors.green,
+    this.progressBarColor,
+    this.cornerRadius = 7.0,
+  });
+
+  final String title;
+  final String subtitle;
+  final String fieldLabel;
+  final Widget prefixIcon;
+  final Widget? suffixIcon;
+  final Widget backIcon;
+  final int maxLength;
+  final String validationRegex;
+  final String regexErrorMessage;
+  final String lengthErrorMessage;
+  final String continueButtonText;
+  final void Function(String value)? onContinue;
+  final Color buttonColor;
+  final Color? progressBarColor;
+  final double cornerRadius;
 
   @override
   State<FlowyUsernamePage> createState() => _FlowyUsernamePageState();
@@ -9,7 +42,6 @@ class FlowyUsernamePage extends StatefulWidget {
 
 class _FlowyUsernamePageState extends State<FlowyUsernamePage> {
   late TextEditingController firstNameController;
-  double round = 7;
   late RegExp firstLastNameRegex;
   bool first = false;
 
@@ -17,7 +49,7 @@ class _FlowyUsernamePageState extends State<FlowyUsernamePage> {
   void initState() {
     super.initState();
     firstNameController = TextEditingController();
-    firstLastNameRegex = RegExp(r'^[a-zA-Z]+$');
+    firstLastNameRegex = RegExp(widget.validationRegex);
   }
 
   @override
@@ -27,7 +59,7 @@ class _FlowyUsernamePageState extends State<FlowyUsernamePage> {
   }
 
   bool _isValidFirstName(String value) {
-    return firstLastNameRegex.hasMatch(value) && value.length <= 20;
+    return firstLastNameRegex.hasMatch(value) && value.length <= widget.maxLength;
   }
 
   @override
@@ -51,7 +83,7 @@ class _FlowyUsernamePageState extends State<FlowyUsernamePage> {
                     value: value,
                     backgroundColor: Colors.grey.shade200,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                        Theme.of(context).primaryColor),
+                        widget.progressBarColor ?? Theme.of(context).primaryColor),
                   ),
                 ),
               ),
@@ -65,22 +97,22 @@ class _FlowyUsernamePageState extends State<FlowyUsernamePage> {
                   children: [
                     // Back Button
                     IconButton(
-                      icon: const Icon(Icons.arrow_back),
+                      icon: widget.backIcon,
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(height: 20),
                     // Title
-                    const Text(
-                      'What\'s your name?',
-                      style: TextStyle(
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Enter your first name to get started',
-                      style: TextStyle(
+                    Text(
+                      widget.subtitle,
+                      style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 16,
                       ),
@@ -90,22 +122,23 @@ class _FlowyUsernamePageState extends State<FlowyUsernamePage> {
                     TextFormField(
                       controller: firstNameController,
                       textCapitalization: TextCapitalization.sentences,
-                      maxLength: 20,
+                      maxLength: widget.maxLength,
                       decoration: InputDecoration(
-                        labelText: 'First Name',
+                        labelText: widget.fieldLabel,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(round),
+                          borderRadius: BorderRadius.circular(widget.cornerRadius),
                         ),
-                        prefixIcon: const Icon(Icons.person_outline),
+                        prefixIcon: widget.prefixIcon,
+                        suffixIcon: widget.suffixIcon,
                         filled: firstNameController.text.isNotEmpty,
                         fillColor: _isValidFirstName(firstNameController.text)
                             ? Colors.white
                             : Colors.red.shade50,
                         errorText: firstNameController.text.isNotEmpty &&
                                 !_isValidFirstName(firstNameController.text)
-                            ? firstNameController.text.length > 20
-                                ? 'First name must be 20 characters or less'
-                                : 'First name can only contain letters'
+                            ? firstNameController.text.length > widget.maxLength
+                                ? widget.lengthErrorMessage
+                                : widget.regexErrorMessage
                             : null,
                         counterText: '',
                       ),
@@ -128,23 +161,22 @@ class _FlowyUsernamePageState extends State<FlowyUsernamePage> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed:
-                      first && _isValidFirstName(firstNameController.text)
-                          ? () {}
-                          : null,
+                  onPressed: first && _isValidFirstName(firstNameController.text)
+                      ? () => widget.onContinue?.call(firstNameController.text)
+                      : null,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(round),
+                      borderRadius: BorderRadius.circular(widget.cornerRadius),
                     ),
                     backgroundColor:
                         first && _isValidFirstName(firstNameController.text)
-                            ? Colors.green
+                            ? widget.buttonColor
                             : Colors.grey.shade300,
                   ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(
+                  child: Text(
+                    widget.continueButtonText,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
